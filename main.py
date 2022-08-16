@@ -145,6 +145,7 @@ def qrcode():
     except:
         pass
 
+# ปริ้น a la cart
 def order_a_la_cart():
     url = ip_host+'api/check-order-to-kitchen'
     params = dict(
