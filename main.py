@@ -9,10 +9,10 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-# ip_host = "http://172.104.184.60/ipsoftapi/"
-ip_host = "http://165.22.59.74/"
+ip_host = "http://172.104.184.60/ipsoftapi/"
+# ip_host = "http://165.22.59.74/"
 
-printer_ipAddress = "192.168.1.253"
+printer_ipAddress = "192.168.1.240"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -157,7 +157,7 @@ def order_a_la_cart():
     try:
         res = requests.get(url=url, params=params)
         data = res.json()
-        p = Network("192.168.1.252")
+        p = Network("192.168.1.240")
         p.set(align='left')
         p.image(textImage(u"ทานที่ร้าน"))
         p.image(textImage(u"ครัว : อาหาร"))
@@ -348,11 +348,11 @@ def orderTableTakehome():
                 for item2 in item["topping"]:
                     if item2["amount"] != None:
                         if item2["amount"] > 0:
-                            textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                            textTopping = u"         + " + str(item2["amount"]) + " " + item2["name"]
                         else:
-                            textTopping = u"         + " + item2["topingName"]
+                            textTopping = u"         + " + item2["name"]
                     else:
-                        textTopping = u"         + " + item2["topingName"]
+                        textTopping = u"         + " + item2["name"]
                     if len(textTopping) > 45:
                         p.image(textImage(textTopping[:45]))
                         p.image(textImage(textTopping[45:]))
@@ -452,8 +452,8 @@ def orderTakeHome():
 if __name__ == "__main__":
     while True:
         qrcode()
-        # orderTokidchen()
-        order_a_la_cart()
+        orderTokidchen()
+        # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
         sleep(1)
