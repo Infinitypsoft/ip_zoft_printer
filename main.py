@@ -9,10 +9,10 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-ip_host = "http://172.104.184.60/ipsoftapi/"
-# ip_host = "http://165.22.59.74/"
+# ip_host = "http://172.104.184.60/ipsoftapi/"
+ip_host = "http://165.22.59.74/"
 
-printer_ipAddress = "192.168.1.240"
+printer_ipAddress = "192.168.1.254"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -187,11 +187,11 @@ def order_a_la_cart():
                     for item2 in item["toping"]:
                         if item2["amount"] != None:
                             if item2["amount"] > 0:
-                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["name"]
                             else:
-                                textTopping = u"         + " + item2["topingName"]
+                                textTopping = u"         + " + item2["name"]
                         else:
-                            textTopping = u"         + " + item2["topingName"]
+                            textTopping = u"         + " + item2["name"]
                         if len(textTopping) > 45:
                             p.image(textImage(textTopping[:45]))
                             p.image(textImage(textTopping[45:]))
