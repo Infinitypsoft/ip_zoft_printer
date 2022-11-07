@@ -55,11 +55,11 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             for item2 in item["toping"]:
                 if item2["amount"] != None:
                     if item2["amount"] > 0:
-                        textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                        textTopping = u"         + " + str(item2["amount"]) + " " + item2["name"]
                     else:
-                        textTopping = u"         + " + item2["topingName"]
+                        textTopping = u"         + " + item2["name"]
                 else:
-                    textTopping = u"         + " + item2["topingName"]
+                    textTopping = u"         + " + item2["name"]
                 if len(textTopping) > 45:
                     p.image(textImage(textTopping[:45]))
                     p.image(textImage(textTopping[45:]))
@@ -409,7 +409,7 @@ def orderTakeHome():
                     p.image(textImage(textDetail))
                     
                 if item["description"] != None:
-                    textDescription = u"       - "+ item["description"]
+                    textDescription = u"       ***"+ item["description"]
                     
                     if len(textDescription) > 45:
                         p.image(textImage(textDescription[:45]))
