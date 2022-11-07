@@ -201,6 +201,15 @@ def order_a_la_cart():
         p.text('------------------------------------------------')
         p.text('------------------------------------------------ \n')
         p.image(textImage(u'ออเดอร์ที่ : #' + str(data["order"])))
+
+        if data["name_admin"] != None:
+            text_name_admin = u'พนักงานผู้สั่ง : ' + data["name_admin"]
+            if len(text_name_admin) > 45:
+                p.image(textImage(text_name_admin[:45]))
+                p.image(textImage(text_name_admin[45:]))
+            else:
+                p.image(textImage(text_name_admin))
+                
         p.image(textImage(data["created_at"]))
         p.cut()
 
@@ -435,6 +444,15 @@ def orderTakeHome():
         p.text('------------------------------------------------')
         p.text('------------------------------------------------ \n')
         p.image(textImage(u'ออเดอร์ที่ : #' + str(data["order"])))
+
+        if data["name_admin"] != None:
+            text_name_admin = u'พนักงานผู้สั่ง : ' + data["name_admin"]
+            if len(text_name_admin) > 45:
+                p.image(textImage(text_name_admin[:45]))
+                p.image(textImage(text_name_admin[45:]))
+            else:
+                p.image(textImage(text_name_admin))
+
         p.image(textImage(data["created_at"]))
         p.cut()
         
