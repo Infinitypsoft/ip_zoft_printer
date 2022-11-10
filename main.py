@@ -21,7 +21,7 @@ get_ip_printer = requests.get(
 
 ip_printer_data = get_ip_printer.json()
 
-def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at):
+def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at,name_admin):
     p = Network(ip_printer)
     p.set(align='left')
     if type == "บุฟเฟ่":
@@ -55,11 +55,11 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             for item2 in item["toping"]:
                 if item2["amount"] != None:
                     if item2["amount"] > 0:
-                        textTopping = u"         + " + str(item2["amount"]) + " " + item2["name"]
+                        textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
                     else:
-                        textTopping = u"         + " + item2["name"]
+                        textTopping = u"         + " + item2["topingName"]
                 else:
-                    textTopping = u"         + " + item2["name"]
+                    textTopping = u"         + " + item2["topingName"]
                 if len(textTopping) > 45:
                     p.image(textImage(textTopping[:45]))
                     p.image(textImage(textTopping[45:]))
@@ -69,6 +69,15 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
     p.text('------------------------------------------------')
     p.text('------------------------------------------------ \n')
     p.image(textImage(u'ออเดอร์ที่ : #' + str(order)))
+
+    if name_admin != None:
+        text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
+        if len(text_name_admin) > 45:
+            p.image(textImage(text_name_admin[:45]))
+            p.image(textImage(text_name_admin[45:]))
+        else:
+            p.image(textImage(text_name_admin))
+
     p.image(textImage(created_at))
     p.cut()
     
@@ -187,11 +196,11 @@ def order_a_la_cart():
                     for item2 in item["toping"]:
                         if item2["amount"] != None:
                             if item2["amount"] > 0:
-                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["name"]
+                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
                             else:
-                                textTopping = u"         + " + item2["name"]
+                                textTopping = u"         + " + item2["topingName"]
                         else:
-                            textTopping = u"         + " + item2["name"]
+                            textTopping = u"         + " + item2["topingName"]
                         if len(textTopping) > 45:
                             p.image(textImage(textTopping[:45]))
                             p.image(textImage(textTopping[45:]))
@@ -249,7 +258,8 @@ def orderTokidchen():
                     detail["printer_1"],
                     data["order_id"],
                     data["order"],
-                    data["created_at"]
+                    data["created_at"],
+                    data['name_admin']
                     )
             if len(detail["printer_2"]) > 0:
                 printer_Order(
@@ -261,7 +271,8 @@ def orderTokidchen():
                     detail["printer_2"],
                     data["order_id"],
                     data["order"],
-                    data["created_at"]
+                    data["created_at"],
+                    data['name_admin']
                 )
             if len(detail["printer_3"]) > 0:
                 printer_Order(
@@ -273,7 +284,8 @@ def orderTokidchen():
                     detail["printer_3"],
                     data["order_id"],
                     data["order"],
-                    data["created_at"]
+                    data["created_at"],
+                    data['name_admin']
                 )
             if len(detail["printer_4"]) > 0:
                 printer_Order(
@@ -285,7 +297,8 @@ def orderTokidchen():
                     detail["printer_4"],
                     data["order_id"],
                     data["order"],
-                    data["created_at"]
+                    data["created_at"],
+                    data['name_admin']
                 )
             if len(detail["printer_5"]) > 0:
                 printer_Order(
@@ -297,7 +310,8 @@ def orderTokidchen():
                     detail["printer_5"],
                     data["order_id"],
                     data["order"],
-                    data["created_at"]
+                    data["created_at"],
+                    data['name_admin']
                 )
             if len(detail["printer_6"]) > 0:
                 printer_Order(
@@ -309,7 +323,8 @@ def orderTokidchen():
                     detail["printer_6"],
                     data["order_id"],
                     data["order"],
-                    data["created_at"]
+                    data["created_at"],
+                    data['name_admin']
                 )
         
         print('Print Order To Kitchen')
