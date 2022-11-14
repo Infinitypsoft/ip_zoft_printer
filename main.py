@@ -10,9 +10,10 @@ from multiprocessing import Process
 
 
 # ip_host = "http://172.104.184.60/ipsoftapi/"
-ip_host = "http://165.22.59.74/"
+# ip_host = "http://165.22.59.74/"
+ip_host = "http://localhost:8000/"
 
-printer_ipAddress = "192.168.1.254"
+printer_ipAddress = "192.168.1.200"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -21,81 +22,77 @@ get_ip_printer = requests.get(
 
 ip_printer_data = get_ip_printer.json()
 
-def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at,name_admin):
-    p = Network(ip_printer)
-    p.set(align='left')
-    if type == "บุฟเฟ่":
-        p.image(textImage(u"บุฟเฟ่ต์"))
-        p.image(textImage(u"ครัว : "+kitchen))
-    else:
-        p.image(textImage(u"ทานที่ร้าน"))
-        p.image(textImage(u"ครัว : อาหาร"))
-    p.image(textImage(table))
-    p.image(textImage(u"ลูกค้า : "+customer))
-    p.text('------------------------------------------------')
-    p.text('------------------------------------------------ \n')
-    for item in item:
-        textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
-        if len(textDetail) > 45:
-            p.image(textImage(textDetail[:45]))
-            p.image(textImage(textDetail[45:]))
+def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at,name_admin,printer_id):
+    try:
+        p = Network(ip_printer)
+        p.set(align='left')
+        if type == "บุฟเฟ่":
+            p.image(textImage(u"บุฟเฟ่ต์"))
+            p.image(textImage(u"ครัว : "+kitchen))
         else:
-            p.image(textImage(textDetail))
-            
-        if item["description"] != None:
-            textDescription = u"       ***"+ item["description"]
-            
-            if len(textDescription) > 45:
-                p.image(textImage(textDescription[:45]))
-                p.image(textImage(textDescription[45:]))
+            p.image(textImage(u"ทานที่ร้าน"))
+            p.image(textImage(u"ครัว : อาหาร"))
+        p.image(textImage(table))
+        p.image(textImage(u"ลูกค้า : "+customer))
+        p.text('------------------------------------------------')
+        p.text('------------------------------------------------ \n')
+        for item in item:
+            textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
+            if len(textDetail) > 45:
+                p.image(textImage(textDetail[:45]))
+                p.image(textImage(textDetail[45:]))
             else:
-                p.image(textImage(textDescription))
-            
-        if len(item["toping"]) != 0:
-            for item2 in item["toping"]:
-                if item2["amount"] != None:
-                    if item2["amount"] > 0:
-                        textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                p.image(textImage(textDetail))
+                
+            if item["description"] != None:
+                textDescription = u"       ***"+ item["description"]
+                
+                if len(textDescription) > 45:
+                    p.image(textImage(textDescription[:45]))
+                    p.image(textImage(textDescription[45:]))
+                else:
+                    p.image(textImage(textDescription))
+                
+            if len(item["toping"]) != 0:
+                for item2 in item["toping"]:
+                    if item2["amount"] != None:
+                        if item2["amount"] > 0:
+                            textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                        else:
+                            textTopping = u"         + " + item2["topingName"]
                     else:
                         textTopping = u"         + " + item2["topingName"]
-                else:
-                    textTopping = u"         + " + item2["topingName"]
-                if len(textTopping) > 45:
-                    p.image(textImage(textTopping[:45]))
-                    p.image(textImage(textTopping[45:]))
-                else:
-                    p.image(textImage(textTopping))
-    p.text('\n')
-    p.text('------------------------------------------------')
-    p.text('------------------------------------------------ \n')
-    p.image(textImage(u'ออเดอร์ที่ : #' + str(order)))
+                    if len(textTopping) > 45:
+                        p.image(textImage(textTopping[:45]))
+                        p.image(textImage(textTopping[45:]))
+                    else:
+                        p.image(textImage(textTopping))
+        p.text('\n')
+        p.text('------------------------------------------------')
+        p.text('------------------------------------------------ \n')
+        p.image(textImage(u'ออเดอร์ที่ : #' + str(order)))
 
-    if name_admin != None:
-        text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
-        if len(text_name_admin) > 45:
-            p.image(textImage(text_name_admin[:45]))
-            p.image(textImage(text_name_admin[45:]))
-        else:
-            p.image(textImage(text_name_admin))
+        if name_admin != None:
+            text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
+            if len(text_name_admin) > 45:
+                p.image(textImage(text_name_admin[:45]))
+                p.image(textImage(text_name_admin[45:]))
+            else:
+                p.image(textImage(text_name_admin))
 
-    p.image(textImage(created_at))
-    p.cut()
-    
-    if type == "บุฟเฟ่":
-        url2 = ip_host+'api/updateOrderDetail'
-        data = {
-            'order_detail_id': order_id,
-            'printer_id': item["printer_id"],
-            'status_printer': 1
-        }
-    else:
+        p.image(textImage(created_at))
+        p.cut()
+
         url2 = ip_host+'api/updateOrderDetailnobuff'
         data = {
             'order_detail_id': order_id,
+            'printer_id': printer_id,
             'status_printer': 1
         }
-    res = requests.post(url2,json=data)
-    return print("Print Order To Kidchen")
+        res = requests.post(url2,json=data)
+        return print("Print Order To Kidchen")
+    except:
+        pass
     
 
 def textImage(text):
@@ -128,7 +125,7 @@ def qrcode():
         res = requests.get(url=url, params=params)
         data = res.json()
         
-        p = Network(printer_ipAddress)
+        p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
         p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
         p.text('------------------------------------------------ \n')
@@ -259,8 +256,10 @@ def orderTokidchen():
                     data["order_id"],
                     data["order"],
                     data["created_at"],
-                    data['name_admin']
+                    data['name_admin'],
+                    1
                     )
+
             if len(detail["printer_2"]) > 0:
                 printer_Order(
                     ip_printer_data[1]["IP_address"],
@@ -272,7 +271,8 @@ def orderTokidchen():
                     data["order_id"],
                     data["order"],
                     data["created_at"],
-                    data['name_admin']
+                    data['name_admin'],
+                    2
                 )
             if len(detail["printer_3"]) > 0:
                 printer_Order(
@@ -285,7 +285,8 @@ def orderTokidchen():
                     data["order_id"],
                     data["order"],
                     data["created_at"],
-                    data['name_admin']
+                    data['name_admin'],
+                    3
                 )
             if len(detail["printer_4"]) > 0:
                 printer_Order(
@@ -298,7 +299,8 @@ def orderTokidchen():
                     data["order_id"],
                     data["order"],
                     data["created_at"],
-                    data['name_admin']
+                    data['name_admin'],
+                    4
                 )
             if len(detail["printer_5"]) > 0:
                 printer_Order(
@@ -311,7 +313,8 @@ def orderTokidchen():
                     data["order_id"],
                     data["order"],
                     data["created_at"],
-                    data['name_admin']
+                    data['name_admin'],
+                    4
                 )
             if len(detail["printer_6"]) > 0:
                 printer_Order(
@@ -324,7 +327,8 @@ def orderTokidchen():
                     data["order_id"],
                     data["order"],
                     data["created_at"],
-                    data['name_admin']
+                    data['name_admin'],
+                    6
                 )
         
         print('Print Order To Kitchen')
@@ -489,6 +493,6 @@ if __name__ == "__main__":
         # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
-        sleep(1)
+        sleep(2)
 
 # orderTokidchen()
