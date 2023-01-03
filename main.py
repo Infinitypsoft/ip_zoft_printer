@@ -97,8 +97,9 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
 
 def textImage(text):
     font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 45)
-    box1 = font.getsize(text)
-    image = Image.new('RGB', (box1[0], 10 + box1[1]))
+    left, top, right, bottom = font.getbbox(text)
+    width, height = right - left, bottom - top
+    image = Image.new('RGB', (width, 10+ height))
     draw1 = ImageDraw.Draw(image)
     draw1.text((0, 0), text, font=font)
     textImage = ImageOps.invert(image)
@@ -106,8 +107,9 @@ def textImage(text):
 
 def textImageBill(text):
     font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 35)
-    box1 = font.getsize(text)
-    image = Image.new('RGB', (box1[0], 10 + box1[1]))
+    left, top, right, bottom = font.getbbox(text)
+    width, height = right - left, bottom - top
+    image = Image.new('RGB', (width, 10+ height))
     draw1 = ImageDraw.Draw(image)
     draw1.text((0, 0), text, font=font)
     textImage = ImageOps.invert(image)
