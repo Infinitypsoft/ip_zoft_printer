@@ -99,7 +99,7 @@ def textImage(text):
     font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 45)
     left, top, right, bottom = font.getbbox(text)
     width, height = right - left, bottom - top
-    image = Image.new('RGB', (width, 10+ height))
+    image = Image.new('RGB', (width, 20+ height))
     draw1 = ImageDraw.Draw(image)
     draw1.text((0, 0), text, font=font)
     textImage = ImageOps.invert(image)
