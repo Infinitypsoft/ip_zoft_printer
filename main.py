@@ -10,8 +10,8 @@ from multiprocessing import Process
 
 
 # ip_host = "http://172.104.184.60/ipsoftapi/"
-# ip_host = "http://165.22.59.74/"
-ip_host = "http://localhost:8000/"
+ip_host = "http://165.22.59.74/"
+# ip_host = "http://localhost:8000/"
 
 printer_ipAddress = "192.168.1.200"
 
@@ -316,7 +316,7 @@ def orderTokidchen():
                     data["order"],
                     data["created_at"],
                     data['name_admin'],
-                    4
+                    5
                 )
             if len(detail["printer_6"]) > 0:
                 printer_Order(
@@ -331,6 +331,62 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     6
+                )
+            if len(detail["printer_7"]) > 0:
+                printer_Order(
+                    ip_printer_data[6]["IP_address"],
+                    data["type"],
+                    "ครัว 7",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_7"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    7
+                )
+            if len(detail["printer_8"]) > 0:
+                printer_Order(
+                    ip_printer_data[7]["IP_address"],
+                    data["type"],
+                    "ครัว 8",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_8"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    8
+                ) 
+            if len(detail["printer_9"]) > 0:
+                printer_Order(
+                    ip_printer_data[8]["IP_address"],
+                    data["type"],
+                    "ครัว 9",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_9"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    9
+                )  
+            if len(detail["printer_10"]) > 0:
+                printer_Order(
+                    ip_printer_data[9]["IP_address"],
+                    data["type"],
+                    "ครัว 10",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_10"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    10
                 )
         
         print('Print Order To Kitchen')
