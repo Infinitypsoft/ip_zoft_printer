@@ -9,9 +9,10 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
+ip_host = "http://170.187.227.77/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
-ip_host = "http://localhost:8000/"
+# ip_host = "http://localhost:8000/"
 
 printer_ipAddress = "192.168.1.200"
 
@@ -96,7 +97,7 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
     
 
 def textImage(text):
-    font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 45)
+    font = ImageFont.truetype('C:/xampp/htdocs/ip_zoft_printer/ThaiSarabun/THSarabunNew Bold.ttf', 45)
     left, top, right, bottom = font.getbbox(text)
     width, height = right - left, bottom - top
     image = Image.new('RGB', (width, 20+ height))
@@ -106,7 +107,7 @@ def textImage(text):
     return textImage
 
 def textImageBill(text):
-    font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 35)
+    font = ImageFont.truetype('C:/xampp/htdocs/ip_zoft_printer/ThaiSarabun/THSarabunNew Bold.ttf', 35)
     left, top, right, bottom = font.getbbox(text)
     width, height = right - left, bottom - top
     image = Image.new('RGB', (width, 10+ height))
@@ -351,7 +352,7 @@ def orderTableTakehome():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        p.image('take-away.png')
+        p.image('C:/xampp/htdocs/ip_zoft_printer/take-away.png')
         p.set(align='left')
         p.image(textImage(data["invoiceDetail"]["customer_name"]))
         p.image(textImage(data["invoiceDetail"]["invoiceNumber"]))
@@ -423,7 +424,7 @@ def orderTakeHome():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        p.image('take-away.png')
+        p.image('C:/xampp/htdocs/ip_zoft_printer/take-away.png')
         p.set(align='left')
         p.image(textImage(u"คุณ "+data["customer_name"]))
         p.image(textImage(data["invoiceNumber"]))
