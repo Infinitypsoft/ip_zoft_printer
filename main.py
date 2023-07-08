@@ -11,9 +11,10 @@ from multiprocessing import Process
 
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
-ip_host = "http://localhost:8000/"
+ip_host = "http://192.46.226.175/ipsoftapi/"
+# ip_host = "http://165.22.59.74/"
 
-printer_ipAddress = "192.168.1.200"
+printer_ipAddress = "192.168.1.252"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -96,7 +97,7 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
     
 
 def textImage(text):
-    font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 45)
+    font = ImageFont.truetype('C:/Users/ZoftConnect/Desktop/ip_zoft_printer/ThaiSarabun/THSarabunNew Bold.ttf', 45)
     left, top, right, bottom = font.getbbox(text)
     width, height = right - left, bottom - top
     image = Image.new('RGB', (width, 20+ height))
@@ -106,7 +107,7 @@ def textImage(text):
     return textImage
 
 def textImageBill(text):
-    font = ImageFont.truetype('ThaiSarabun/THSarabunNew Bold.ttf', 35)
+    font = ImageFont.truetype('C:/Users/ZoftConnect/Desktop/ip_zoft_printer/ThaiSarabun/THSarabunNew Bold.ttf', 35)
     left, top, right, bottom = font.getbbox(text)
     width, height = right - left, bottom - top
     image = Image.new('RGB', (width, 10+ height))
@@ -129,8 +130,8 @@ def qrcode():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
-        p.text('------------------------------------------------ \n')
+        # p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
+        # p.text('------------------------------------------------ \n')
         if data["type"] == "บุฟเฟ่":
             p.image(textImage(u"บุฟเฟ่ต์"))
             p.image(textImage(u"โต๊ะที่ : "+data["table"]))
@@ -149,7 +150,7 @@ def qrcode():
             'id':data["opentable_id"]
         }
         res = requests.post(url2,json=data)
-        print('Print Qrcode')
+        print('Print Qrcode',res.status_code)
     except:
         pass
 
@@ -165,7 +166,7 @@ def order_a_la_cart():
     try:
         res = requests.get(url=url, params=params)
         data = res.json()
-        p = Network("192.168.1.240")
+        p = Network(printer_ipAddress)
         p.set(align='left')
         p.image(textImage(u"ทานที่ร้าน"))
         p.image(textImage(u"ครัว : อาหาร"))
@@ -351,7 +352,7 @@ def orderTableTakehome():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        p.image('take-away.png')
+        p.image('C:/Users/ZoftConnect/Desktop/ip_zoft_printer/take-away.png')
         p.set(align='left')
         p.image(textImage(data["invoiceDetail"]["customer_name"]))
         p.image(textImage(data["invoiceDetail"]["invoiceNumber"]))
@@ -423,7 +424,7 @@ def orderTakeHome():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        p.image('take-away.png')
+        p.image('C:/Users/ZoftConnect/Desktop/ip_zoft_printer/take-away.png')
         p.set(align='left')
         p.image(textImage(u"คุณ "+data["customer_name"]))
         p.image(textImage(data["invoiceNumber"]))
