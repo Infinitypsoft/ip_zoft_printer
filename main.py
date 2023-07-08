@@ -13,7 +13,7 @@ ip_host = "http://172.105.119.103/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
 
-printer_ipAddress = "192.168.1.251"
+printer_ipAddress = "192.168.1.252"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -129,8 +129,8 @@ def qrcode():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
-        p.text('------------------------------------------------ \n')
+        # p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
+        # p.text('------------------------------------------------ \n')
         if data["type"] == "บุฟเฟ่":
             p.image(textImage(u"บุฟเฟ่ต์"))
             p.image(textImage(u"โต๊ะที่ : "+data["table"]))
@@ -149,7 +149,7 @@ def qrcode():
             'id':data["opentable_id"]
         }
         res = requests.post(url2,json=data)
-        print('Print Qrcode')
+        print('Print Qrcode',res.status_code)
     except:
         pass
 
@@ -165,7 +165,7 @@ def order_a_la_cart():
     try:
         res = requests.get(url=url, params=params)
         data = res.json()
-        p = Network("192.168.1.252")
+        p = Network(printer_ipAddress)
         p.set(align='left')
         p.image(textImage(u"ทานที่ร้าน"))
         p.image(textImage(u"ครัว : อาหาร"))
@@ -316,7 +316,7 @@ def orderTokidchen():
                     data["order"],
                     data["created_at"],
                     data['name_admin'],
-                    4
+                    5
                 )
             if len(detail["printer_6"]) > 0:
                 printer_Order(
@@ -331,6 +331,62 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     6
+                )
+            if len(detail["printer_7"]) > 0:
+                printer_Order(
+                    ip_printer_data[6]["IP_address"],
+                    data["type"],
+                    "ครัว 7",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_7"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    7
+                )
+            if len(detail["printer_8"]) > 0:
+                printer_Order(
+                    ip_printer_data[7]["IP_address"],
+                    data["type"],
+                    "ครัว 8",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_8"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    8
+                ) 
+            if len(detail["printer_9"]) > 0:
+                printer_Order(
+                    ip_printer_data[8]["IP_address"],
+                    data["type"],
+                    "ครัว 9",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_9"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    9
+                )  
+            if len(detail["printer_10"]) > 0:
+                printer_Order(
+                    ip_printer_data[9]["IP_address"],
+                    data["type"],
+                    "ครัว 10",
+                    data["table"],
+                    data["customer"],
+                    detail["printer_10"],
+                    data["order_id"],
+                    data["order"],
+                    data["created_at"],
+                    data['name_admin'],
+                    10
                 )
         
         print('Print Order To Kitchen')
