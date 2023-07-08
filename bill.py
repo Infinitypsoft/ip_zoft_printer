@@ -13,5 +13,7 @@ while True:
     print('print checkbill', res.status_code)
     res = requests.get('http://127.0.0.2/api/printreceiptrecheck')
     print('print receiptrecheck', res.status_code)
+    res = requests.get('http://127.0.0.2/api/printconclusion')
+    print('print printconclusion', res.status_code)
     # sleep(1)
     time.sleep(1)
