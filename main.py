@@ -9,7 +9,7 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-ip_host = "http://170.187.227.77/ipsoftapi/"
+ip_host = "http://139.144.119.129/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 # ip_host = "http://localhost:8000/"
