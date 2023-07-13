@@ -9,7 +9,7 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-ip_host = "http://170.187.227.77/ipsoftapi/"
+ip_host = "http://143.42.67.167/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 # ip_host = "http://localhost:8000/"
@@ -166,7 +166,7 @@ def order_a_la_cart():
     try:
         res = requests.get(url=url, params=params)
         data = res.json()
-        p = Network("192.168.1.240")
+        p = Network("192.168.1.252")
         p.set(align='left')
         p.image(textImage(u"ทานที่ร้าน"))
         p.image(textImage(u"ครัว : อาหาร"))
@@ -552,6 +552,6 @@ if __name__ == "__main__":
         # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
-        sleep(2)
+        sleep(1)
 
 # orderTokidchen()
