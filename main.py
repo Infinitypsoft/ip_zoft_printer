@@ -130,8 +130,8 @@ def qrcode():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        # p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
-        # p.text('------------------------------------------------ \n')
+        p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
+        p.text('------------------------------------------------ \n')
         if data["type"] == "บุฟเฟ่":
             p.image(textImage(u"บุฟเฟ่ต์"))
             p.image(textImage(u"โต๊ะที่ : "+data["table"]))
