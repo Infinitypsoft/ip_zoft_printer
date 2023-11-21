@@ -9,12 +9,12 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-ip_host = "http://143.42.67.167/ipsoftapi/"
+ip_host = "http://139.144.118.203/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
 
-printer_ipAddress = "192.168.1.252"
+printer_ipAddress = "192.168.1.253"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -130,8 +130,8 @@ def qrcode():
         
         p = Network(ip_printer_data[1]["IP_address"])
         p.set(align='center')
-        # p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
-        # p.text('------------------------------------------------ \n')
+        p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
+        p.text('------------------------------------------------ \n')
         if data["type"] == "บุฟเฟ่":
             p.image(textImage(u"บุฟเฟ่ต์"))
             p.image(textImage(u"โต๊ะที่ : "+data["table"]))
