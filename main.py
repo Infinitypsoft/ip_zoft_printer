@@ -39,36 +39,36 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             p.text('------------------------------------------------')
             p.text('------------------------------------------------ \n')
             
-                textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
-                if len(textDetail) > 45:
-                    p.image(textImage(textDetail[:45]))
-                    p.image(textImage(textDetail[45:]))
+            textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
+            if len(textDetail) > 45:
+                p.image(textImage(textDetail[:45]))
+                p.image(textImage(textDetail[45:]))
+            else:
+                p.image(textImage(textDetail))
+                
+            if item["description"] != None:
+                textDescription = u"       ***"+ item["description"]
+                
+                if len(textDescription) > 45:
+                    p.image(textImage(textDescription[:45]))
+                    p.image(textImage(textDescription[45:]))
                 else:
-                    p.image(textImage(textDetail))
-                    
-                if item["description"] != None:
-                    textDescription = u"       ***"+ item["description"]
-                    
-                    if len(textDescription) > 45:
-                        p.image(textImage(textDescription[:45]))
-                        p.image(textImage(textDescription[45:]))
-                    else:
-                        p.image(textImage(textDescription))
-                    
-                if len(item["toping"]) != 0:
-                    for item2 in item["toping"]:
-                        if item2["amount"] != None:
-                            if item2["amount"] > 0:
-                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
-                            else:
-                                textTopping = u"         + " + item2["topingName"]
+                    p.image(textImage(textDescription))
+                
+            if len(item["toping"]) != 0:
+                for item2 in item["toping"]:
+                    if item2["amount"] != None:
+                        if item2["amount"] > 0:
+                            textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
                         else:
                             textTopping = u"         + " + item2["topingName"]
-                        if len(textTopping) > 45:
-                            p.image(textImage(textTopping[:45]))
-                            p.image(textImage(textTopping[45:]))
-                        else:
-                            p.image(textImage(textTopping))
+                    else:
+                        textTopping = u"         + " + item2["topingName"]
+                    if len(textTopping) > 45:
+                        p.image(textImage(textTopping[:45]))
+                        p.image(textImage(textTopping[45:]))
+                    else:
+                        p.image(textImage(textTopping))
             p.text('\n')
             p.text('------------------------------------------------')
             p.text('------------------------------------------------ \n')
