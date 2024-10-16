@@ -27,62 +27,63 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
     try:
         p = Network(ip_printer)
         p.set(align='left')
-        if type == "บุฟเฟ่":
-            p.image(textImage(u"บุฟเฟ่ต์"))
-            p.image(textImage(u"ครัว : "+kitchen))
-        else:
-            p.image(textImage(u"ทานที่ร้าน"))
-            p.image(textImage(u"ครัว : อาหาร"))
-        p.image(textImage(table))
-        p.image(textImage(u"ลูกค้า : "+customer))
-        p.text('------------------------------------------------')
-        p.text('------------------------------------------------ \n')
         for item in item:
-            textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
-            if len(textDetail) > 45:
-                p.image(textImage(textDetail[:45]))
-                p.image(textImage(textDetail[45:]))
+            if type == "บุฟเฟ่":
+                p.image(textImage(u"บุฟเฟ่ต์"))
+                p.image(textImage(u"ครัว : "+kitchen))
             else:
-                p.image(textImage(textDetail))
-                
-            if item["description"] != None:
-                textDescription = u"       ***"+ item["description"]
-                
-                if len(textDescription) > 45:
-                    p.image(textImage(textDescription[:45]))
-                    p.image(textImage(textDescription[45:]))
+                p.image(textImage(u"ทานที่ร้าน"))
+                p.image(textImage(u"ครัว : อาหาร"))
+            p.image(textImage(table))
+            p.image(textImage(u"ลูกค้า : "+customer))
+            p.text('------------------------------------------------')
+            p.text('------------------------------------------------ \n')
+            
+                textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
+                if len(textDetail) > 45:
+                    p.image(textImage(textDetail[:45]))
+                    p.image(textImage(textDetail[45:]))
                 else:
-                    p.image(textImage(textDescription))
-                
-            if len(item["toping"]) != 0:
-                for item2 in item["toping"]:
-                    if item2["amount"] != None:
-                        if item2["amount"] > 0:
-                            textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                    p.image(textImage(textDetail))
+                    
+                if item["description"] != None:
+                    textDescription = u"       ***"+ item["description"]
+                    
+                    if len(textDescription) > 45:
+                        p.image(textImage(textDescription[:45]))
+                        p.image(textImage(textDescription[45:]))
+                    else:
+                        p.image(textImage(textDescription))
+                    
+                if len(item["toping"]) != 0:
+                    for item2 in item["toping"]:
+                        if item2["amount"] != None:
+                            if item2["amount"] > 0:
+                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                            else:
+                                textTopping = u"         + " + item2["topingName"]
                         else:
                             textTopping = u"         + " + item2["topingName"]
-                    else:
-                        textTopping = u"         + " + item2["topingName"]
-                    if len(textTopping) > 45:
-                        p.image(textImage(textTopping[:45]))
-                        p.image(textImage(textTopping[45:]))
-                    else:
-                        p.image(textImage(textTopping))
-        p.text('\n')
-        p.text('------------------------------------------------')
-        p.text('------------------------------------------------ \n')
-        p.image(textImage(u'ออเดอร์ที่ : #' + str(order)))
+                        if len(textTopping) > 45:
+                            p.image(textImage(textTopping[:45]))
+                            p.image(textImage(textTopping[45:]))
+                        else:
+                            p.image(textImage(textTopping))
+            p.text('\n')
+            p.text('------------------------------------------------')
+            p.text('------------------------------------------------ \n')
+            p.image(textImage(u'ออเดอร์ที่ : #' + str(order)))
 
-        if name_admin != None:
-            text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
-            if len(text_name_admin) > 45:
-                p.image(textImage(text_name_admin[:45]))
-                p.image(textImage(text_name_admin[45:]))
-            else:
-                p.image(textImage(text_name_admin))
+            if name_admin != None:
+                text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
+                if len(text_name_admin) > 45:
+                    p.image(textImage(text_name_admin[:45]))
+                    p.image(textImage(text_name_admin[45:]))
+                else:
+                    p.image(textImage(text_name_admin))
 
-        p.image(textImage(created_at))
-        p.cut()
+            p.image(textImage(created_at))
+            p.cut()
 
         url2 = ip_host+'api/updateOrderDetailnobuff'
         data = {
