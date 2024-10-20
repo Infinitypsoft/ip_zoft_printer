@@ -553,6 +553,6 @@ if __name__ == "__main__":
         # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
-        sleep(2)
+        time.sleep(2)
 
 # orderTokidchen()
