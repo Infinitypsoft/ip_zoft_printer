@@ -85,12 +85,12 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             p.image(textImage(created_at))
             p.cut()
 
-        url2 = ip_host+'api/updateOrderDetailnobuff'
-        data = {
-            'order_detail_id': order_id,
-            'printer_id': printer_id,
-            'status_printer': 1
-        }
+            url2 = ip_host+'api/updateOrderDetailnobuff'
+            data = {
+                'order_detail_id': item['order_detail_id'],
+                'printer_id': printer_id,
+                'status_printer': 1
+            }
         res = requests.post(url2,json=data)
         return print("Print Order To Kidchen")
     except:
