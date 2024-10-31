@@ -9,12 +9,12 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-ip_host = "http://170.187.227.77/ipsoftapi/"
+ip_host = "http://tko.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 # ip_host = "http://localhost:8000/"
 
-printer_ipAddress = "192.168.1.200"
+printer_ipAddress = "192.168.1.252"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
