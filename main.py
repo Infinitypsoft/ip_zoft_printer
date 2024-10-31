@@ -12,7 +12,7 @@ from multiprocessing import Process
 ip_host = "http://tko.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
-# ip_host = "http://localhost:8000/"
+#ip_host = "http://localhost:8000/"
 
 printer_ipAddress = "192.168.1.252"
 
@@ -150,7 +150,7 @@ def qrcode():
             'id':data["opentable_id"]
         }
         res = requests.post(url2,json=data)
-        print('Print Qrcode')
+        print('Print Qrcode',res.status_code)
     except:
         pass
 
@@ -166,7 +166,7 @@ def order_a_la_cart():
     try:
         res = requests.get(url=url, params=params)
         data = res.json()
-        p = Network("192.168.1.240")
+        p = Network(printer_ipAddress)
         p.set(align='left')
         p.image(textImage(u"ทานที่ร้าน"))
         p.image(textImage(u"ครัว : อาหาร"))
@@ -552,6 +552,6 @@ if __name__ == "__main__":
         # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
-        sleep(2)
+        sleep(1)
 
 # orderTokidchen()
