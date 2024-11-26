@@ -9,12 +9,12 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 
 
-ip_host = "https://tam-lun-thung.zoftconnect.co/ipsoftapi/"
+ip_host = "https://judjarn.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
 
-printer_ipAddress = "192.168.1.234"
+printer_ipAddress = "192.168.1.252"
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -85,12 +85,13 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             p.image(textImage(created_at))
             p.cut()
 
-        url2 = ip_host+'api/updateOrderDetailnobuff'
-        data = {
-            'order_detail_id': order_id,
-            'printer_id': printer_id,
-            'status_printer': 1
-        }
+            url2 = ip_host+'api/updateOrderDetailnobuff'
+            data = {
+                'order_detail_id': item['order_detail_id'],
+                'printer_id': printer_id,
+                'status_printer': 1
+            }
+
         res = requests.post(url2,json=data)
         return print("Print Order To Kidchen")
     except:
