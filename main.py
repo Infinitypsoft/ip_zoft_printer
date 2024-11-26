@@ -554,6 +554,6 @@ if __name__ == "__main__":
         # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
-        time.sleep(2)
+        time.sleep(3)
 
 # orderTokidchen()
