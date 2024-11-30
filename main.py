@@ -550,12 +550,10 @@ def orderTakeHome():
 if __name__ == "__main__":
     while True:
         qrcode()
-        time.sleep(2)
-
         orderTokidchen()
         # order_a_la_cart()
         orderTableTakehome()
         orderTakeHome()
-        time.sleep(10)
+        time.sleep(5)
 
 # orderTokidchen()
