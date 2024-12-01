@@ -85,17 +85,12 @@ def printer_Order(ip_printer, type, kitchen, table, customer, item, order_id, or
                         p.image(textImage(text_name_admin))
 
                 p.image(textImage(created_at))
+                p.cut()
             except Exception as e:
                 print(f"Error printing item: {e}")
                 print_success = False  # หากพิมพ์รายการล้มเหลว ให้ตั้ง flag
-
-        # ตรวจสอบว่า p.cut() สำเร็จหรือไม่
-        try:
-            p.cut()
-        except Exception as e:
-            print(f"Error during cut operation: {e}")
-            print_success = False  # หากการตัดกระดาษล้มเหลว
-
+        
+        
         # อัปเดต API เมื่อพิมพ์สำเร็จ
         if print_success:
             url2 = ip_host + 'api/updateOrderDetailnobuff'
