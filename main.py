@@ -7,6 +7,7 @@ import requests
 from PIL import Image, ImageFont, ImageOps, ImageDraw
 # import mysql.connector
 from multiprocessing import Process
+from threading import Lock
 
 
 ip_host = "https://judjarn.zoftconnect.co/ipsoftapi/"
@@ -15,6 +16,9 @@ ip_host = "https://judjarn.zoftconnect.co/ipsoftapi/"
 #ip_host = "http://localhost:8000/"
 
 printer_ipAddress = "192.168.1.252"
+# ตัวแปรเพื่อบันทึกออเดอร์ที่กำลังดำเนินการ
+processing_orders = set()
+lock = Lock()
 
 get_ip_printer = requests.get(
     url=ip_host+'api/printerlists',
@@ -24,6 +28,15 @@ get_ip_printer = requests.get(
 ip_printer_data = get_ip_printer.json()
 
 def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at,name_admin,printer_id):
+    global processing_orders
+
+    # ตรวจสอบว่าออเดอร์นี้กำลังถูกประมวลผลอยู่หรือไม่
+    with lock:  # ใช้ Lock เพื่อป้องกันการเข้าถึงพร้อมกันในหลาย Thread
+        if order_id in processing_orders:
+            print(f"Skipping order {order_id}, already in progress.")
+            return  # ข้ามการประมวลผล
+        processing_orders.add(order_id)
+
     try:
         p = Network(ip_printer)
         p.set(align='left')
@@ -96,6 +109,11 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
         return print("Print Order To Kidchen")
     except:
         pass
+    finally:
+        # ลบ order_id ออกจากรายการเมื่อเสร็จ
+        with lock:
+            processing_orders.remove(order_id)
+
     
 
 def textImage(text):
