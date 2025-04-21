@@ -7,9 +7,9 @@ import requests
 from PIL import Image, ImageFont, ImageOps, ImageDraw
 # import mysql.connector
 from multiprocessing import Process
+from datetime import datetime
 
-
-ip_host = "https://judjarn.zoftconnect.co/ipsoftapi/"
+ip_host = "https://demo.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
@@ -31,11 +31,8 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             p.image(textImage(u"บุฟเฟ่ต์"))
             p.image(textImage(u"ครัว : "+kitchen))
         else:
-            p.image(textImage(u"ทานที่ร้าน"))
-            p.image(textImage(u"ครัว : อาหาร"))
-        p.image(textImage(table))
+            p.image(textImage(u"ทานที่ร้าน | ครัว : อาหาร | " + table))
         p.image(textImage(u"ลูกค้า : "+customer))
-        p.text('------------------------------------------------')
         p.text('------------------------------------------------ \n')
         for item in item:
             textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
@@ -69,9 +66,9 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
                     else:
                         p.image(textImage(textTopping))
         p.text('\n')
-        p.text('------------------------------------------------')
         p.text('------------------------------------------------ \n')
-        p.image(textImage(u'ออเดอร์ที่ : #' + str(order)))
+        order_with_date = u'ออเดอร์ที่: #' + str(order) + u'  (' + created_at + u')'
+        p.image(textImage(order_with_date))
 
         if name_admin != None:
             text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
@@ -81,7 +78,7 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             else:
                 p.image(textImage(text_name_admin))
 
-        p.image(textImage(created_at))
+        # p.image(textImage(created_at))
         p.cut()
 
         url2 = ip_host+'api/updateOrderDetailnobuff'
