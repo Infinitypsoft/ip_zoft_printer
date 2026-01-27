@@ -1,6 +1,9 @@
 # !/usr/bin/python
 # -- coding: utf-8 --
 import json
+import logging
+import os
+import traceback
 from time import sleep
 from escpos.printer import Network
 import requests
@@ -9,6 +12,20 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 from datetime import datetime
 
+# --- ตั้งค่า log เก็บลงไฟล์ (อยู่โฟลเดอร์เดียวกับ main.py) ---
+_log_dir = os.path.dirname(os.path.abspath(__file__))
+_log_file = os.path.join(_log_dir, 'printer.log')
+_log = logging.getLogger('printer')
+_log.setLevel(logging.INFO)
+_fh = logging.FileHandler(_log_file, encoding='utf-8')
+_fh.setLevel(logging.INFO)
+_fh.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
+_log.addHandler(_fh)
+
+# --- ค่าสำหรับการเชื่อมต่อเครื่องปริ้น (แก้ได้ตามเครื่อง) ---
+PRINTER_PORT = 9100
+PRINTER_TIMEOUT = 10
+PRINTER_MAX_RETRIES = 3
 
 ip_host = "https://demo-buffet.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
@@ -24,74 +41,84 @@ get_ip_printer = requests.get(
 
 ip_printer_data = get_ip_printer.json()
 
-def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at,name_admin,printer_id):
-    try:
-        p = Network(ip_printer)
-        p.set(align='left')
-        if type == "บุฟเฟ่":
-            p.image(textImage(u"บุฟเฟ่ต์"))
-            p.image(textImage(u"ครัว : "+kitchen))
-        else:
-            p.image(textImage(u"ทานที่ร้าน | ครัว : อาหาร | " + table))
-        p.image(textImage(u"ลูกค้า : "+customer))
-        p.text('------------------------------------------------ \n')
-        for item in item:
-            textDetail = u"     " + str(item["amount"]) + "   " + item["foodName"]
-            if len(textDetail) > 45:
-                p.image(textImage(textDetail[:45]))
-                p.image(textImage(textDetail[45:]))
+def printer_Order(ip_printer, type, kitchen, table, customer, item, order_id, order, created_at, name_admin, printer_id):
+    print_ok = False
+    for attempt in range(1, PRINTER_MAX_RETRIES + 1):
+        try:
+            p = Network(ip_printer, port=PRINTER_PORT, timeout=PRINTER_TIMEOUT)
+            p.set(align='left')
+            if type == "บุฟเฟ่":
+                p.image(textImage(u"บุฟเฟ่ต์"))
+                p.image(textImage(u"ครัว : " + kitchen))
             else:
-                p.image(textImage(textDetail))
-                
-            if item["description"] != None:
-                textDescription = u"       ***"+ item["description"]
-                
-                if len(textDescription) > 45:
-                    p.image(textImage(textDescription[:45]))
-                    p.image(textImage(textDescription[45:]))
+                p.image(textImage(u"ทานที่ร้าน | ครัว : อาหาร | " + table))
+            p.image(textImage(u"ลูกค้า : " + customer))
+            p.text('------------------------------------------------ \n')
+            for it in item:
+                textDetail = u"     " + str(it["amount"]) + "   " + it["foodName"]
+                if len(textDetail) > 45:
+                    p.image(textImage(textDetail[:45]))
+                    p.image(textImage(textDetail[45:]))
                 else:
-                    p.image(textImage(textDescription))
-                
-            if len(item["toping"]) != 0:
-                for item2 in item["toping"]:
-                    if item2["amount"] != None:
-                        if item2["amount"] > 0:
-                            textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                    p.image(textImage(textDetail))
+
+                if it["description"] != None:
+                    textDescription = u"       ***" + it["description"]
+                    if len(textDescription) > 45:
+                        p.image(textImage(textDescription[:45]))
+                        p.image(textImage(textDescription[45:]))
+                    else:
+                        p.image(textImage(textDescription))
+
+                if len(it["toping"]) != 0:
+                    for item2 in it["toping"]:
+                        if item2["amount"] != None:
+                            if item2["amount"] > 0:
+                                textTopping = u"         + " + str(item2["amount"]) + " " + item2["topingName"]
+                            else:
+                                textTopping = u"         + " + item2["topingName"]
                         else:
                             textTopping = u"         + " + item2["topingName"]
-                    else:
-                        textTopping = u"         + " + item2["topingName"]
-                    if len(textTopping) > 45:
-                        p.image(textImage(textTopping[:45]))
-                        p.image(textImage(textTopping[45:]))
-                    else:
-                        p.image(textImage(textTopping))
-        p.text('\n')
-        p.text('------------------------------------------------ \n')
-        order_with_date = u'ออเดอร์ที่: #' + str(order) + u'  (' + created_at + u')'
-        p.image(textImage(order_with_date))
+                        if len(textTopping) > 45:
+                            p.image(textImage(textTopping[:45]))
+                            p.image(textImage(textTopping[45:]))
+                        else:
+                            p.image(textImage(textTopping))
+            p.text('\n')
+            p.text('------------------------------------------------ \n')
+            order_with_date = u'ออเดอร์ที่: #' + str(order) + u'  (' + created_at + u')'
+            p.image(textImage(order_with_date))
 
-        if name_admin != None:
-            text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
-            if len(text_name_admin) > 45:
-                p.image(textImage(text_name_admin[:45]))
-                p.image(textImage(text_name_admin[45:]))
+            if name_admin != None:
+                text_name_admin = u'พนักงานผู้สั่ง : ' + name_admin
+                if len(text_name_admin) > 45:
+                    p.image(textImage(text_name_admin[:45]))
+                    p.image(textImage(text_name_admin[45:]))
+                else:
+                    p.image(textImage(text_name_admin))
+
+            p.cut()
+            print_ok = True
+            break
+        except Exception as e:
+            _log.error(
+                "printer_Order ล้มเหลว ครั้งที่ %s/%s | ip=%s order_id=%s order=#%s printer_id=%s ครัว=%s | %s",
+                attempt, PRINTER_MAX_RETRIES, ip_printer, order_id, order, printer_id, kitchen, e
+            )
+            _log.error("รายละเอียด: %s", traceback.format_exc())
+            if attempt < PRINTER_MAX_RETRIES:
+                sleep(2)
             else:
-                p.image(textImage(text_name_admin))
+                _log.error("printer_Order ยกเลิกหลัง retry %s ครั้ง | ip=%s order=#%s ครัว=%s", PRINTER_MAX_RETRIES, ip_printer, order, kitchen)
 
-        # p.image(textImage(created_at))
-        p.cut()
-
-        url2 = ip_host+'api/updateOrderDetailnobuff'
-        data = {
-            'order_detail_id': order_id,
-            'printer_id': printer_id,
-            'status_printer': 1
-        }
-        res = requests.post(url2,json=data)
-        return print("Print Order To Kidchen")
-    except:
-        pass
+    if print_ok:
+        try:
+            url2 = ip_host + 'api/updateOrderDetailnobuff'
+            data = {'order_detail_id': order_id, 'printer_id': printer_id, 'status_printer': 1}
+            requests.post(url2, json=data)
+            _log.info("Print Order To Kitchen | ip=%s order=#%s printer_id=%s ครัว=%s", ip_printer, order, printer_id, kitchen)
+        except Exception as e:
+            _log.error("printer_Order: API updateOrderDetailnobuff ล้มเหลว | order_id=%s | %s", order_id, e)
     
 
 def textImage(text):
