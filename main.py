@@ -1,6 +1,7 @@
 # !/usr/bin/python
 # -- coding: utf-8 --
 import json
+import sys
 from time import sleep
 from escpos.printer import Network
 import requests
@@ -9,6 +10,26 @@ from PIL import Image, ImageFont, ImageOps, ImageDraw
 from multiprocessing import Process
 from datetime import datetime
 
+# Timeout (วินาที) – ป้องกัน API/เครื่องปริ้นค้าง
+REQUEST_TIMEOUT = 10
+IMAGE_TIMEOUT = 15
+PRINTER_TIMEOUT = 10
+
+def api_get_json(url, params=None):
+    """เรียก GET แล้วคืน (data, None) หรือ (None, error_msg)"""
+    try:
+        res = requests.get(url=url, params=params or {}, timeout=REQUEST_TIMEOUT)
+        text = (res.text or "").strip()
+        if res.status_code != 200:
+            return None, "API HTTP %s" % res.status_code
+        if not text:
+            return None, None
+        try:
+            return res.json(), None
+        except ValueError as e:
+            return None, "Invalid JSON (%s)" % e
+    except requests.RequestException as e:
+        return None, str(e)
 
 ip_host = "https://demo-buffet.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
@@ -17,16 +38,36 @@ ip_host = "https://demo-buffet.zoftconnect.co/ipsoftapi/"
 
 printer_ipAddress = "192.168.2.199"
 
-get_ip_printer = requests.get(
-    url=ip_host+'api/printerlists',
-    params=dict(origin='Chicago,IL',destination='Los+Angeles,CA',waypoints='Joplin,MO|Oklahoma+City,OK',sensor='false')
-    )
-
-ip_printer_data = get_ip_printer.json()
+# โหลดรายการเครื่องปริ้น (retry ตอนรันด้วย Task Scheduler / เปิดเครื่องใหม่)
+STARTUP_RETRY = 12
+STARTUP_RETRY_DELAY = 10
+ip_printer_data = None
+for attempt in range(1, STARTUP_RETRY + 1):
+    try:
+        res = requests.get(
+            url=ip_host+'api/printerlists',
+            params=dict(origin='Chicago,IL',destination='Los+Angeles,CA',waypoints='Joplin,MO|Oklahoma+City,OK',sensor='false'),
+            timeout=REQUEST_TIMEOUT
+        )
+        if res.status_code != 200 or not (res.text or "").strip():
+            raise ValueError("API returned status %s or empty body" % res.status_code)
+        ip_printer_data = res.json()
+        if not isinstance(ip_printer_data, list) or len(ip_printer_data) == 0:
+            raise ValueError("printer list empty or invalid")
+        break
+    except Exception as e:
+        if attempt < STARTUP_RETRY:
+            print("โหลด printerlists ไม่ได้ (ครั้งที่ %d) รอ %d วินาที ..." % (attempt, STARTUP_RETRY_DELAY))
+            sleep(STARTUP_RETRY_DELAY)
+        else:
+            print("ไม่สามารถโหลดรายการเครื่องปริ้นจาก API ได้:", e)
+            print("ตรวจสอบ ip_host =", ip_host)
+            sys.exit(1)
 
 def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,created_at,name_admin,printer_id):
+    p = None
     try:
-        p = Network(ip_printer)
+        p = Network(ip_printer, timeout=PRINTER_TIMEOUT)
         p.set(align='left')
         if type == "บุฟเฟ่":
             p.image(textImage(u"บุฟเฟ่ต์"))
@@ -88,11 +129,22 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             'printer_id': printer_id,
             'status_printer': 1
         }
-        res = requests.post(url2,json=data)
-        return print("Print Order To Kidchen")
-    except:
-        pass
-    
+        res = requests.post(url2, json=data, timeout=REQUEST_TIMEOUT)
+        print("Print Order To Kidchen")
+        return True
+    except Exception as e:
+        print("printer_Order error:", e)
+        return False
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:
+                pass
+            try:
+                p.close = lambda: None
+            except Exception:
+                pass
 
 def textImage(text):
     font = ImageFont.truetype('C:/xampp/htdocs/ip_zoft_printer/ThaiSarabun/THSarabunNew Bold.ttf', 45)
@@ -122,13 +174,17 @@ def qrcode():
         waypoints='Joplin,MO|Oklahoma+City,OK',
         sensor='false'
     )
+    p = None
     try:
-        res = requests.get(url=url, params=params)
-        data = res.json()
-        
-        p = Network(ip_printer_data[1]["IP_address"])
+        data, err = api_get_json(url, params)
+        if err is not None and "500" not in str(err):
+            print('qrcode error:', err)
+        if data is None or not data.get('opentable_id') or not data.get('logo_image'):
+            return False
+
+        p = Network(ip_printer_data[1]["IP_address"], timeout=PRINTER_TIMEOUT)
         p.set(align='center')
-        p.image(Image.open(requests.get(data["logo_image"], stream=True).raw))
+        p.image(Image.open(requests.get(data["logo_image"], stream=True, timeout=IMAGE_TIMEOUT).raw))
         p.text('------------------------------------------------ \n')
         if data["type"] == "บุฟเฟ่":
             p.image(textImage(u"บุฟเฟ่ต์"))
@@ -137,20 +193,30 @@ def qrcode():
             p.image(textImage(u"ทานที่ร้าน"))
             p.image(textImage(u"โต๊ะที่ : "+data["table"]))
         p.text('\n')
-        p.image(Image.open(requests.get(data["qrcode_image"], stream=True).raw))
+        p.image(Image.open(requests.get(data["qrcode_image"], stream=True, timeout=IMAGE_TIMEOUT).raw))
         p.text('\n')
         p.image(textImage("ขอบคุณที่มาอุดหนุน"))
         p.image(textImage("powerd by ZoftConnect"))
         p.cut()
-        
+
         url2 = ip_host+'api/updateopentable'
-        data = {
-            'id':data["opentable_id"]
-        }
-        res = requests.post(url2,json=data)
-        print('Print Qrcode',res.status_code)
-    except:
-        pass
+        post_data = {'id': data["opentable_id"]}
+        requests.post(url2, json=post_data, timeout=REQUEST_TIMEOUT)
+        print('Print Qrcode')
+        return True
+    except Exception as e:
+        print('qrcode error:', e)
+        return False
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:
+                pass
+            try:
+                p.close = lambda: None
+            except Exception:
+                pass
 
 # ปริ้น a la cart
 def order_a_la_cart():
@@ -161,10 +227,15 @@ def order_a_la_cart():
         waypoints='Joplin,MO|Oklahoma+City,OK',
         sensor='false'
     )
+    p = None
     try:
-        res = requests.get(url=url, params=params)
-        data = res.json()
-        p = Network(printer_ipAddress)
+        data, err = api_get_json(url, params)
+        if err is not None and "500" not in str(err):
+            print('order_a_la_cart error:', err)
+        if data is None or not data.get('detail'):
+            return False
+
+        p = Network(printer_ipAddress, timeout=PRINTER_TIMEOUT)
         p.set(align='left')
         p.image(textImage(u"ทานที่ร้าน"))
         p.image(textImage(u"ครัว : อาหาร"))
@@ -227,11 +298,23 @@ def order_a_la_cart():
             'status_printer': 1
         }
 
-        res = requests.post(url2,json=data)
+        res = requests.post(url2, json=data, timeout=REQUEST_TIMEOUT)
         print('Print Order To Kitchen')
-    except:
-        pass
-    
+        return True
+    except Exception as e:
+        print('order_a_la_cart error:', e)
+        return False
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:
+                pass
+            try:
+                p.close = lambda: None
+            except Exception:
+                pass
+
 def orderTokidchen():
     url = ip_host+'api/check-order-to-kitchen'
     params = dict(
@@ -240,14 +323,16 @@ def orderTokidchen():
         waypoints='Joplin,MO|Oklahoma+City,OK',
         sensor='false'
     )
-    
     try:
-        res = requests.get(url=url, params=params)
-        data = res.json()
-        
+        data, err = api_get_json(url, params)
+        if err is not None and "500" not in str(err):
+            print('orderTokidchen error:', err)
+        if data is None or not data.get('detail'):
+            return False
+        has_work = False
         for detail in data["detail"]:
             if len(detail["printer_1"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[0]["IP_address"],
                     data["type"],
                     "ครัว 1",
@@ -259,10 +344,11 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     1
-                    )
+                ):
+                    has_work = True
 
             if len(detail["printer_2"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[1]["IP_address"],
                     data["type"],
                     "ครัว 2",
@@ -274,9 +360,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     2
-                )
+                ):
+                    has_work = True
             if len(detail["printer_3"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[2]["IP_address"],
                     data["type"],
                     "ครัว 3",
@@ -288,9 +375,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     3
-                )
+                ):
+                    has_work = True
             if len(detail["printer_4"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[3]["IP_address"],
                     data["type"],
                     "ครัว 4",
@@ -302,9 +390,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     4
-                )
+                ):
+                    has_work = True
             if len(detail["printer_5"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[4]["IP_address"],
                     data["type"],
                     "ครัว 5",
@@ -316,9 +405,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     5
-                )
+                ):
+                    has_work = True
             if len(detail["printer_6"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[5]["IP_address"],
                     data["type"],
                     "ครัว 6",
@@ -330,9 +420,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     6
-                )
+                ):
+                    has_work = True
             if len(detail["printer_7"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[6]["IP_address"],
                     data["type"],
                     "ครัว 7",
@@ -344,9 +435,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     7
-                )
+                ):
+                    has_work = True
             if len(detail["printer_8"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[7]["IP_address"],
                     data["type"],
                     "ครัว 8",
@@ -358,9 +450,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     8
-                ) 
+                ):
+                    has_work = True
             if len(detail["printer_9"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[8]["IP_address"],
                     data["type"],
                     "ครัว 9",
@@ -372,9 +465,10 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     9
-                )  
+                ):
+                    has_work = True
             if len(detail["printer_10"]) > 0:
-                printer_Order(
+                if printer_Order(
                     ip_printer_data[9]["IP_address"],
                     data["type"],
                     "ครัว 10",
@@ -386,12 +480,15 @@ def orderTokidchen():
                     data["created_at"],
                     data['name_admin'],
                     10
-                )
-        
-        print('Print Order To Kitchen')
-    except:
-        pass
-    
+                ):
+                    has_work = True
+        if has_work:
+            print('Print Order To Kitchen')
+        return has_work
+    except Exception as e:
+        print('orderTokidchen error:', e)
+        return False
+
 def orderTableTakehome():
     url = ip_host+'api/ordertabletakehome'
     params = dict(
@@ -400,11 +497,15 @@ def orderTableTakehome():
         waypoints='Joplin,MO|Oklahoma+City,OK',
         sensor='false'
     )
+    p = None
     try:
-        res = requests.get(url=url, params=params)
-        data = res.json()
-        
-        p = Network(ip_printer_data[1]["IP_address"])
+        data, err = api_get_json(url, params)
+        if err is not None and "500" not in str(err):
+            print('orderTableTakehome error:', err)
+        if data is None or not data.get('invoiceDetail'):
+            return False
+
+        p = Network(ip_printer_data[1]["IP_address"], timeout=PRINTER_TIMEOUT)
         p.set(align='center')
         p.image('C:/xampp/htdocs/ip_zoft_printer/take-away.png')
         p.set(align='left')
@@ -452,15 +553,24 @@ def orderTableTakehome():
         p.cut()
         
         url2 = ip_host+'api/updateorder'
-        data = {
-            'id':data["invoiceDetail"]["order_id"],
-            'status':1
-        }
-        res = requests.post(url2,json=data)
+        post_data = {'id': data["invoiceDetail"]["order_id"], 'status': 1}
+        requests.post(url2, json=post_data, timeout=REQUEST_TIMEOUT)
         print('Print Order Table Take Home')
-    except:
-        pass
-    
+        return True
+    except Exception as e:
+        print('orderTableTakehome error:', e)
+        return False
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:
+                pass
+            try:
+                p.close = lambda: None
+            except Exception:
+                pass
+
 def orderTakeHome():
     url = ip_host+'api/ordertakehome'
     params = dict(
@@ -469,14 +579,15 @@ def orderTakeHome():
         waypoints='Joplin,MO|Oklahoma+City,OK',
         sensor='false'
     )
-    
+    p = None
     try:
-        res = requests.get(url=url, params=params)
-        data = res.json()
-        
-        # print(data["detail"])
-        
-        p = Network(ip_printer_data[1]["IP_address"])
+        data, err = api_get_json(url, params)
+        if err is not None and "500" not in str(err):
+            print('orderTakeHome error:', err)
+        if data is None or not data.get('detail'):
+            return False
+
+        p = Network(ip_printer_data[1]["IP_address"], timeout=PRINTER_TIMEOUT)
         p.set(align='center')
         p.image('C:/xampp/htdocs/ip_zoft_printer/take-away.png')
         p.set(align='left')
@@ -533,23 +644,42 @@ def orderTakeHome():
         p.cut()
         
         url2 = ip_host+'api/updatetakehome'
-        data = {
-            'id':data["invoice_id"],
-            'status':1
-        }
-        res = requests.post(url2,json=data)
+        post_data = {'id': data["invoice_id"], 'status': 1}
+        requests.post(url2, json=post_data, timeout=REQUEST_TIMEOUT)
         print('Print Order Take Home')
-    except:
-        pass
-    
+        return True
+    except Exception as e:
+        print('orderTakeHome error:', e)
+        return False
+    finally:
+        if p is not None:
+            try:
+                p.close()
+            except Exception:
+                pass
+            try:
+                p.close = lambda: None
+            except Exception:
+                pass
+
 
 if __name__ == "__main__":
     while True:
-        qrcode()
-        orderTokidchen()
-        # order_a_la_cart()
-        orderTableTakehome()
-        orderTakeHome()
+        has_work = False
+        if qrcode():
+            has_work = True
         sleep(1)
+        if orderTokidchen():
+            has_work = True
+        # order_a_la_cart()
+        sleep(1)
+        if orderTableTakehome():
+            has_work = True
+        sleep(2)
+        if orderTakeHome():
+            has_work = True
+        sleep(2)
+        if not has_work:
+            sleep(1)
 
 # orderTokidchen()
