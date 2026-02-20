@@ -31,12 +31,12 @@ def api_get_json(url, params=None):
     except requests.RequestException as e:
         return None, str(e)
 
-ip_host = "https://demo-buffet.zoftconnect.co/ipsoftapi/"
+ip_host = "https://temkam.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
 
-printer_ipAddress = "192.168.2.199"
+printer_ipAddress = "192.168.1.252"
 
 # โหลดรายการเครื่องปริ้น (retry ตอนรันด้วย Task Scheduler / เปิดเครื่องใหม่)
 STARTUP_RETRY = 12
