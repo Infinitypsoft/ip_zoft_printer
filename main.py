@@ -14,11 +14,14 @@ from datetime import datetime
 REQUEST_TIMEOUT = 10
 IMAGE_TIMEOUT = 15
 PRINTER_TIMEOUT = 10
+# เวลาออเดอร์เยอะ เซิร์ฟเวอร์อาจตอบช้า – ใช้ timeout ยาวกว่าเฉพาะ order-to-kitchen
+KITCHEN_REQUEST_TIMEOUT = 20
 
-def api_get_json(url, params=None):
-    """เรียก GET แล้วคืน (data, None) หรือ (None, error_msg)"""
+def api_get_json(url, params=None, timeout=None):
+    """เรียก GET แล้วคืน (data, None) หรือ (None, error_msg). timeout ถ้าไม่ระบุใช้ REQUEST_TIMEOUT"""
     try:
-        res = requests.get(url=url, params=params or {}, timeout=REQUEST_TIMEOUT)
+        t = timeout if timeout is not None else REQUEST_TIMEOUT
+        res = requests.get(url=url, params=params or {}, timeout=t)
         text = (res.text or "").strip()
         if res.status_code != 200:
             return None, "API HTTP %s" % res.status_code
@@ -124,12 +127,18 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
         p.cut()
 
         url2 = ip_host+'api/updateOrderDetailnobuff'
-        data = {
+        payload = {
             'order_detail_id': order_id,
             'printer_id': printer_id,
             'status_printer': 1
         }
-        res = requests.post(url2, json=data, timeout=REQUEST_TIMEOUT)
+        for attempt in range(2):
+            try:
+                requests.post(url2, json=payload, timeout=KITCHEN_REQUEST_TIMEOUT)
+                break
+            except requests.RequestException as e:
+                if attempt == 1:
+                    print('updateOrderDetailnobuff error (status อาจยังเป็น 0):', e)
         print("Print Order To Kidchen")
         return True
     except Exception as e:
@@ -324,7 +333,7 @@ def orderTokidchen():
         sensor='false'
     )
     try:
-        data, err = api_get_json(url, params)
+        data, err = api_get_json(url, params, timeout=KITCHEN_REQUEST_TIMEOUT)
         if err is not None and "500" not in str(err):
             print('orderTokidchen error:', err)
         if data is None or not data.get('detail'):
