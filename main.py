@@ -146,12 +146,14 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
         return False
     finally:
         if p is not None:
+            # ป้องกัน Escpos.__del__ เรียก close() บน socket ที่หลุดแล้ว (WinError 10057)
+            orig_close = p.close
             try:
-                p.close()
+                p.close = lambda: None
             except Exception:
                 pass
             try:
-                p.close = lambda: None
+                orig_close()
             except Exception:
                 pass
 
@@ -218,12 +220,13 @@ def qrcode():
         return False
     finally:
         if p is not None:
+            orig_close = p.close
             try:
-                p.close()
+                p.close = lambda: None
             except Exception:
                 pass
             try:
-                p.close = lambda: None
+                orig_close()
             except Exception:
                 pass
 
@@ -315,12 +318,13 @@ def order_a_la_cart():
         return False
     finally:
         if p is not None:
+            orig_close = p.close
             try:
-                p.close()
+                p.close = lambda: None
             except Exception:
                 pass
             try:
-                p.close = lambda: None
+                orig_close()
             except Exception:
                 pass
 
@@ -571,12 +575,13 @@ def orderTableTakehome():
         return False
     finally:
         if p is not None:
+            orig_close = p.close
             try:
-                p.close()
+                p.close = lambda: None
             except Exception:
                 pass
             try:
-                p.close = lambda: None
+                orig_close()
             except Exception:
                 pass
 
@@ -662,12 +667,13 @@ def orderTakeHome():
         return False
     finally:
         if p is not None:
+            orig_close = p.close
             try:
-                p.close()
+                p.close = lambda: None
             except Exception:
                 pass
             try:
-                p.close = lambda: None
+                orig_close()
             except Exception:
                 pass
 
