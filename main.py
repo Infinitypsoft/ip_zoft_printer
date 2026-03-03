@@ -11,11 +11,11 @@ from multiprocessing import Process
 from datetime import datetime
 
 # Timeout (วินาที) – ป้องกัน API/เครื่องปริ้นค้าง
-REQUEST_TIMEOUT = 10
-IMAGE_TIMEOUT = 15
-PRINTER_TIMEOUT = 10
+REQUEST_TIMEOUT = 15
+IMAGE_TIMEOUT = 20
+PRINTER_TIMEOUT = 20
 # เวลาออเดอร์เยอะ เซิร์ฟเวอร์อาจตอบช้า – ใช้ timeout ยาวกว่าเฉพาะ order-to-kitchen
-KITCHEN_REQUEST_TIMEOUT = 20
+KITCHEN_REQUEST_TIMEOUT = 30
 
 def api_get_json(url, params=None, timeout=None):
     """เรียก GET แล้วคืน (data, None) หรือ (None, error_msg). timeout ถ้าไม่ระบุใช้ REQUEST_TIMEOUT"""
@@ -34,7 +34,7 @@ def api_get_json(url, params=None, timeout=None):
     except requests.RequestException as e:
         return None, str(e)
 
-ip_host = "https://temkam.zoftconnect.co/ipsoftapi/"
+ip_host = "http://45.118.133.135/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
