@@ -678,23 +678,27 @@ def orderTakeHome():
                 pass
 
 
+# เวลารอระหว่างรอบ: ตอนมีงานใช้สั้น เพื่อดึงออเดอร์ต่อได้เร็ว ตอนไม่มีงานรอนานหน่อย
+# ไม่ต่ำกว่า 0.5 เกินไป เพื่อไม่ให้ยิงเครื่องปริ้น/ซ็อกเก็ตถี่จนหลุด
+SLEEP_WHEN_BUSY = 0.5
+SLEEP_WHEN_IDLE = 1.0
+SLEEP_BETWEEN_STEPS_IDLE = 1.0
+SLEEP_BETWEEN_STEPS_BUSY = 0.5
+
 if __name__ == "__main__":
     while True:
         has_work = False
         if qrcode():
             has_work = True
-        sleep(1)
+        sleep(SLEEP_BETWEEN_STEPS_BUSY if has_work else SLEEP_BETWEEN_STEPS_IDLE)
         if orderTokidchen():
             has_work = True
-        # order_a_la_cart()
-        sleep(1)
+        sleep(SLEEP_BETWEEN_STEPS_BUSY if has_work else SLEEP_BETWEEN_STEPS_IDLE)
         if orderTableTakehome():
             has_work = True
-        sleep(2)
+        sleep(SLEEP_BETWEEN_STEPS_BUSY if has_work else 2)
         if orderTakeHome():
             has_work = True
-        sleep(2)
-        if not has_work:
-            sleep(1)
+        sleep(SLEEP_WHEN_BUSY if has_work else SLEEP_WHEN_IDLE)
 
 # orderTokidchen()
