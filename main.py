@@ -76,7 +76,7 @@ def printer_Order(ip_printer,type,kitchen,table,customer,item,order_id,order,cre
             p.image(textImage(u"บุฟเฟ่ต์"))
             p.image(textImage(u"ครัว : "+kitchen))
         else:
-            p.image(textImage(u"ทานที่ร้าน | ครัว : อาหาร | " + table))
+            p.image(textImage(table + u" | ครัว : อาหาร | ทานที่ร้าน"))
         p.image(textImage(u"ลูกค้า : "+customer))
         p.text('------------------------------------------------ \n')
         for item in item:
