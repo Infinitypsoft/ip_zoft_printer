@@ -34,7 +34,7 @@ def api_get_json(url, params=None, timeout=None):
     except requests.RequestException as e:
         return None, str(e)
 
-ip_host = "https://temkam.zoftconnect.co/ipsoftapi/"
+ip_host = "https://tiger-yakiniku.zoftconnect.co/ipsoftapi/"
 # ip_host = "http://172.104.184.60/ipsoftapi/"
 # ip_host = "http://165.22.59.74/"
 #ip_host = "http://localhost:8000/"
